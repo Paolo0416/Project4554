@@ -1,0 +1,40 @@
+name: Build Windows App
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11' # Windows handles newer Python versions well
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Build with PyInstaller
+      run: |
+        # WINDOWS SPECIFIC: usage of semicolon (;) instead of colon (:)
+        pyinstaller --noconsole --onefile --windowed `
+          --add-data "templates;templates" `
+          --add-data "static;static" `
+          --add-data "csvjson.json;." `
+          --name "SchedSmart" `
+          SchedSmart.py
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: SchedSmart-Windows
+        path: dist/SchedSmart.exe
